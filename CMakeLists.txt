@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(pyspades)
+project(sharpspades)
 
-add_library(pyspades SHARED
+add_library(sharpspades SHARED
     common_c.h
     constants_c.h
     vxl_c.cpp
@@ -11,5 +11,5 @@ add_library(pyspades SHARED
     pyspades.h
 )
 
-set_target_properties(pyspades PROPERTIES PUBLIC_HEADER pyspades.h)
-target_include_directories(pyspades PRIVATE .)
+set_target_properties(sharpspades PROPERTIES PUBLIC_HEADER pyspades.h)
+target_include_directories(sharpspades PRIVATE .)
