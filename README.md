@@ -10,3 +10,6 @@ Native C++ library for [SharpSpades](https://github.com/JStalnac/SharpSpades)
 cmake -S . -B ./build
 cmake --build ./build --config Release
 ```
+
+## Creating a NuGet package
+See `package`
