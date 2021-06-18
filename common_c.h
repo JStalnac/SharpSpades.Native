@@ -1,45 +1,38 @@
-// vi: set ft=cpp
-#pragma once
+#ifndef COMMON_C_H
+#define COMMON_C_H
 
-class Vector
+typedef struct 
 {
-  public:
     float x, y, z;
+} Vector;
 
-    Vector()
-    {
-        x = 0.0, y = 0.0, z = 0.0;
-    }
-    Vector(float x, float y, float z)
-        : x(x), y(y), z(z) {}
-    void set(float x, float y, float z)
-    {
-        this->x = x;
-        this->y = y;
-        this->z = z;
-    }
-};
-
-struct LongVector
+typedef struct 
 {
     long x, y, z;
-};
+} LongVector;
 
-struct Orientation
+typedef struct
 {
     Vector f, s, h;
-};
+} Orientation;
 
-struct PlayerType
+typedef struct
 {
-    Vector p, e, v, s, h, f;
+    Vector p;
+    Vector e;
+    Vector v;
+    Vector s;
+    Vector h;
+    Vector f;
     int mf, mb, ml, mr, jump, crouch, sneak, sprint, primary_fire,
         secondary_fire;
     float lastclimb;
     int airborne, wade, alive, weapon;
-};
+} PlayerType;
 
-struct GrenadeType
+typedef struct
 {
     Vector p, v;
-};
+} Grenade;
+
+#endif

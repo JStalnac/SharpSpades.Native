@@ -18,36 +18,14 @@
 
 */
 
-// from vxl.h
-#define MAXZDIM 64 //Maximum .VXL dimensions in z direction (height)
-#define FALL_SLOW_DOWN 0.24f
-#define FALL_DAMAGE_VELOCITY 0.58f
-#define FALL_DAMAGE_SCALAR 4096
-#define WEAPON_PRIMARY 1
 
-// common.h
-#define CUBE_ARRAY_LENGTH 64
+#include <math.h>
+#include <stdlib.h>
 
 #include "common_c.h"
 #include "constants_c.h"
-#include "pyspades.h"
-#include "vxl_c.h"
-
-#include <cmath>
-
-enum damage_index
-{
-    BODY_TORSO,
-    BODY_HEAD,
-    BODY_ARMS,
-    BODY_LEGS,
-    BODY_MELEE
-};
-
-// globals to make porting easier
-float ftotclk;
-float fsynctics;
-MapData *global_map;
+#include "sharpspades.h"
+#include "libvxl.h"
 
 inline void get_orientation(Orientation *o,
                             float orientation_x,
@@ -105,7 +83,7 @@ inline void ftol(float f, long *a)
 }
 
 //same as isvoxelsolid but water is empty && out of bounds returns true
-int clipbox(float x, float y, float z)
+int clipbox(struct libvxl_map *map, float x, float y, float z)
 {
     int sz;
 
@@ -118,21 +96,21 @@ int clipbox(float x, float y, float z)
         sz = 62;
     else if (sz >= 64)
         return 1;
-    return get_solid((int)x, (int)y, sz, global_map);
+    return libvxl_map_issolid(map, (int)x, (int)y, sz);
 }
 
 //same as isvoxelsolid() but with wrapping
-long isvoxelsolidwrap(long x, long y, long z)
+long isvoxelsolidwrap(struct libvxl_map *map, long x, long y, long z)
 {
     if (z < 0)
         return 0;
     else if (z >= 64)
         return 1;
-    return get_solid((int)x & VXL_MAX_SIZEM, (int)y & VSIDM, z, global_map);
+    return libvxl_map_issolid(map, (int)x & VXL_MAX_SIZEM, (int)y & VXL_MAX_SIZEM, z);
 }
 
 //same as isvoxelsolid but water is empty
-long clipworld(long x, long y, long z)
+long clipworld(struct libvxl_map *map, long x, long y, long z)
 {
     if (x < 0 || x >= 512 || y < 0 || y >= 512)
         return 0;
@@ -145,10 +123,10 @@ long clipworld(long x, long y, long z)
         return 1;
     else if (sz < 0)
         return 0;
-    return get_solid((int)x, (int)y, sz, global_map);
+    return libvxl_map_issolid(map, (int)x, (int)y, sz);
 }
 
-long can_see(MapData *map, float x0, float y0, float z0, float x1, float y1,
+long can_see(struct libvxl_map *map, float x0, float y0, float z0, float x1, float y1,
              float z1)
 {
     Vector f, g;
@@ -243,14 +221,14 @@ long can_see(MapData *map, float x0, float y0, float z0, float x1, float y1,
             p.z += i.x;
         }
 
-        if (isvoxelsolidwrap(a.x, a.y, a.z))
+        if (isvoxelsolidwrap(map, a.x, a.y, a.z))
             return 0;
         cnt--;
     }
     return 1;
 }
 
-long cast_ray(MapData *map, float x0, float y0, float z0, float x1, float y1,
+long cast_ray(struct libvxl_map *map, float x0, float y0, float z0, float x1, float y1,
               float z1, float length, long *x, long *y, long *z)
 {
     x1 = x0 + x1 * length;
@@ -349,7 +327,7 @@ long cast_ray(MapData *map, float x0, float y0, float z0, float x1, float y1,
             p.z += i.x;
         }
 
-        if (isvoxelsolidwrap(a.x, a.y, a.z))
+        if (isvoxelsolidwrap(map, a.x, a.y, a.z))
         {
             *x = a.x;
             *y = a.y;
@@ -385,33 +363,31 @@ int cube_line(int x1, int y1, int z1, int x2, int y2, int z2,
 
     long dx, dy, dz, dxi, dyi, dzi;
 
-    using std::abs;
-
-    if ((abs(dist.x) >= abs(dist.y)) && (abs(dist.x) >= abs(dist.z)))
+    if ((labs(dist.x) >= labs(dist.y)) && (labs(dist.x) >= labs(dist.z)))
     {
         dxi = 1024;
         dx = 512;
-        dyi = (long)(!dist.y ? 0x3fffffff / VXL_MAX_SIZE : abs(dist.x * 1024 / dist.y));
+        dyi = (long)(!dist.y ? 0x3fffffff / VXL_MAX_SIZE : labs(dist.x * 1024 / dist.y));
         dy = dyi / 2;
-        dzi = (long)(!dist.z ? 0x3fffffff / VXL_MAX_SIZE : abs(dist.x * 1024 / dist.z));
+        dzi = (long)(!dist.z ? 0x3fffffff / VXL_MAX_SIZE : labs(dist.x * 1024 / dist.z));
         dz = dzi / 2;
     }
-    else if (abs(dist.y) >= abs(dist.z))
+    else if (labs(dist.y) >= labs(dist.z))
     {
         dyi = 1024;
         dy = 512;
-        dxi = (long)(!dist.x ? 0x3fffffff / VXL_MAX_SIZE : abs(dist.y * 1024 / dist.x));
+        dxi = (long)(!dist.x ? 0x3fffffff / VXL_MAX_SIZE : labs(dist.y * 1024 / dist.x));
         dx = dxi / 2;
-        dzi = (long)(!dist.z ? 0x3fffffff / VXL_MAX_SIZE : abs(dist.y * 1024 / dist.z));
+        dzi = (long)(!dist.z ? 0x3fffffff / VXL_MAX_SIZE : labs(dist.y * 1024 / dist.z));
         dz = dzi / 2;
     }
     else
     {
         dzi = 1024;
         dz = 512;
-        dxi = (long)(!dist.x ? 0x3fffffff / VXL_MAX_SIZE : abs(dist.z * 1024 / dist.x));
+        dxi = (long)(!dist.x ? 0x3fffffff / VXL_MAX_SIZE : labs(dist.z * 1024 / dist.x));
         dx = dxi / 2;
-        dyi = (long)(!dist.y ? 0x3fffffff / VXL_MAX_SIZE : abs(dist.z * 1024 / dist.y));
+        dyi = (long)(!dist.y ? 0x3fffffff / VXL_MAX_SIZE : labs(dist.z * 1024 / dist.y));
         dy = dyi / 2;
     }
     if (dir.x >= 0)
@@ -469,10 +445,10 @@ int cube_line(int x1, int y1, int z1, int x2, int y2, int z2,
 
 // original C code
 
-void reposition_player(PlayerType *p, Vector *position)
+void reposition_player(PlayerType *p, Vector *position, float time)
 {
     p->e = p->p = *position;
-    float f = p->lastclimb - ftotclk; /* FIXME meaningful name */
+    float f = p->lastclimb - time; /* FIXME meaningful name */
     if (f > -0.25f)
         p->e.z += (f + 0.25f) / 0.25f;
 }
@@ -493,7 +469,7 @@ void reorient_player(PlayerType *p, Vector *orientation)
     set_orientation_vectors(orientation, &p->s, &p->h);
 }
 
-int try_uncrouch(PlayerType *p)
+int try_uncrouch(struct libvxl_map *map, PlayerType *p)
 {
     float x1 = p->p.x + 0.45f;
     float x2 = p->p.x - 0.45f;
@@ -503,13 +479,13 @@ int try_uncrouch(PlayerType *p)
     float z2 = p->p.z - 1.35f;
 
     //first check if player can lower feet (in midair)
-    if (p->airborne && !(clipbox(x1, y1, z1) || clipbox(x1, y2, z1) || clipbox(x2, y1, z1) || clipbox(x2, y2, z1)))
+    if (p->airborne && !(clipbox(map, x1, y1, z1) || clipbox(map, x1, y2, z1) || clipbox(map, x2, y1, z1) || clipbox(map, x2, y2, z1)))
         return (1);
     //then check if they can raise their head
-    else if (!(clipbox(x1, y1, z2) ||
-               clipbox(x1, y2, z2) ||
-               clipbox(x2, y1, z2) ||
-               clipbox(x2, y2, z2)))
+    else if (!(clipbox(map, x1, y1, z2) ||
+               clipbox(map, x1, y2, z2) ||
+               clipbox(map, x2, y1, z2) ||
+               clipbox(map, x2, y2, z2)))
     {
         p->p.z -= 0.9f;
         p->e.z -= 0.9f;
@@ -519,9 +495,9 @@ int try_uncrouch(PlayerType *p)
 }
 
 //player movement with autoclimb
-void boxclipmove(PlayerType *p)
+void boxclipmove(struct libvxl_map *map, PlayerType *p, float delta, float time)
 {
-    float f = fsynctics * 32.f;
+    float f = delta * 32.f;
     float nx = f * p->v.x + p->p.x;
     float ny = f * p->v.y + p->p.y;
 
@@ -551,7 +527,7 @@ void boxclipmove(PlayerType *p)
     }
     float z = m;
 
-    while (z >= -1.36f && !clipbox(nx + f, p->p.y - 0.45f, nz + z) && !clipbox(nx + f, p->p.y + 0.45f, nz + z))
+    while (z >= -1.36f && !clipbox(map, nx + f, p->p.y - 0.45f, nz + z) && !clipbox(map, nx + f, p->p.y + 0.45f, nz + z))
     {
         z -= 0.9f;
     }
@@ -563,7 +539,7 @@ void boxclipmove(PlayerType *p)
     {
         z = 0.35f;
 
-        while (z >= -2.36f && !clipbox(nx + f, p->p.y - 0.45f, nz + z) && !clipbox(nx + f, p->p.y + 0.45f, nz + z))
+        while (z >= -2.36f && !clipbox(map, nx + f, p->p.y - 0.45f, nz + z) && !clipbox(map, nx + f, p->p.y + 0.45f, nz + z))
             z -= 0.9f;
 
         if (z < -2.36f)
@@ -586,14 +562,14 @@ void boxclipmove(PlayerType *p)
         f = 0.45f;
     }
     z = m;
-    while (z >= -1.36f && !clipbox(p->p.x - 0.45f, ny + f, nz + z) && !clipbox(p->p.x + 0.45f, ny + f, nz + z))
+    while (z >= -1.36f && !clipbox(map, p->p.x - 0.45f, ny + f, nz + z) && !clipbox(map, p->p.x + 0.45f, ny + f, nz + z))
         z -= 0.9f;
     if (z < -1.36f)
         p->p.y = ny;
     else if (!p->crouch && p->f.z < 0.5f && !p->sprint && !climb)
     {
         z = 0.35f;
-        while (z >= -2.36f && !clipbox(p->p.x - 0.45f, ny + f, nz + z) && !clipbox(p->p.x + 0.45f, ny + f, nz + z))
+        while (z >= -2.36f && !clipbox(map, p->p.x - 0.45f, ny + f, nz + z) && !clipbox(map, p->p.x + 0.45f, ny + f, nz + z))
             z -= 0.9f;
         if (z < -2.36f)
         {
@@ -610,7 +586,7 @@ void boxclipmove(PlayerType *p)
     {
         p->v.x *= 0.5f;
         p->v.y *= 0.5f;
-        p->lastclimb = ftotclk;
+        p->lastclimb = time;
         nz--;
         m = -1.35f;
     }
@@ -618,15 +594,15 @@ void boxclipmove(PlayerType *p)
     {
         if (p->v.z < 0)
             m = -m;
-        nz += p->v.z * fsynctics * 32.f;
+        nz += p->v.z * delta * 32.f;
     }
 
     p->airborne = 1;
 
-    if (clipbox(p->p.x - 0.45f, p->p.y - 0.45f, nz + m) ||
-        clipbox(p->p.x - 0.45f, p->p.y + 0.45f, nz + m) ||
-        clipbox(p->p.x + 0.45f, p->p.y - 0.45f, nz + m) ||
-        clipbox(p->p.x + 0.45f, p->p.y + 0.45f, nz + m))
+    if (clipbox(map, p->p.x - 0.45f, p->p.y - 0.45f, nz + m) ||
+        clipbox(map, p->p.x - 0.45f, p->p.y + 0.45f, nz + m) ||
+        clipbox(map, p->p.x + 0.45f, p->p.y - 0.45f, nz + m) ||
+        clipbox(map, p->p.x + 0.45f, p->p.y + 0.45f, nz + m))
     {
         if (p->v.z >= 0)
         {
@@ -638,10 +614,10 @@ void boxclipmove(PlayerType *p)
     else
         p->p.z = nz - offset;
 
-    reposition_player(p, &p->p);
+    reposition_player(p, &p->p, time);
 }
 
-long move_player(PlayerType *p)
+long move_player(struct libvxl_map *map, PlayerType *p, float delta, float time)
 {
     //move player and perform simple physics (gravity, momentum, friction)
     if (p->jump)
@@ -650,7 +626,7 @@ long move_player(PlayerType *p)
         p->v.z = -0.36f;
     }
 
-    float f = fsynctics; //player acceleration scalar
+    float f = delta; //player acceleration scalar
     if (p->airborne)
         f *= 0.1f;
     else if (p->crouch)
@@ -684,17 +660,17 @@ long move_player(PlayerType *p)
         p->v.y += p->s.y * f;
     }
 
-    f = fsynctics + 1;
-    p->v.z += fsynctics;
+    f = delta + 1;
+    p->v.z += delta;
     p->v.z /= f; //air friction
     if (p->wade)
-        f = fsynctics * 6.f + 1; //water friction
+        f = delta * 6.f + 1; //water friction
     else if (!p->airborne)
-        f = fsynctics * 4.f + 1; //ground friction
+        f = delta * 4.f + 1; //ground friction
     p->v.x /= f;
     p->v.y /= f;
     float f2 = p->v.z;
-    boxclipmove(p);
+    boxclipmove(map, p, delta, time);
     //hit ground... check if hurt
     if (!p->v.z && (f2 > FALL_SLOW_DOWN))
     {
@@ -715,21 +691,13 @@ long move_player(PlayerType *p)
     return (0); //no fall damage
 }
 
-GrenadeType *create_grenade(Vector *p, Vector *v)
-{
-    GrenadeType *g = new GrenadeType;
-    g->p = *p;
-    g->v = *v;
-    return g;
-}
-
 // returns 1 if there was a collision, 2 if sound should be played
-int move_grenade(GrenadeType *g)
+int move_grenade(struct libvxl_map *map, Grenade *g, float delta)
 {
     Vector fpos = g->p; //old position
     //do velocity & gravity (friction is negligible)
-    float f = fsynctics * 32;
-    g->v.z += fsynctics;
+    float f = delta * 32;
+    g->v.z += delta;
     g->p.x += g->v.x * f;
     g->p.y += g->v.y * f;
     g->p.z += g->v.z * f;
@@ -745,7 +713,7 @@ int move_grenade(GrenadeType *g)
     lp.y = (long)floor(g->p.y);
     lp.z = (long)floor(g->p.z);
 
-    if (!clipworld(lp.x, lp.y, lp.z))
+    if (!clipworld(map, lp.x, lp.y, lp.z))
     {
         return 0; // we didn't hit anything, no collision
     }
@@ -763,11 +731,11 @@ int move_grenade(GrenadeType *g)
         lp2.x = (long)floor(fpos.x);
         lp2.y = (long)floor(fpos.y);
         lp2.z = (long)floor(fpos.z);
-        if (lp.z != lp2.z && ((lp.x == lp2.x && lp.y == lp2.y) || !clipworld(lp.x, lp.y, lp2.z)))
+        if (lp.z != lp2.z && ((lp.x == lp2.x && lp.y == lp2.y) || !clipworld(map, lp.x, lp.y, lp2.z)))
             g->v.z = -g->v.z;
-        else if (lp.x != lp2.x && ((lp.y == lp2.y && lp.z == lp2.z) || !clipworld(lp2.x, lp.y, lp.z)))
+        else if (lp.x != lp2.x && ((lp.y == lp2.y && lp.z == lp2.z) || !clipworld(map, lp2.x, lp.y, lp.z)))
             g->v.x = -g->v.x;
-        else if (lp.y != lp2.y && ((lp.x == lp2.x && lp.z == lp2.z) || !clipworld(lp.x, lp2.y, lp.z)))
+        else if (lp.y != lp2.y && ((lp.x == lp2.x && lp.z == lp2.z) || !clipworld(map, lp.x, lp2.y, lp.z)))
             g->v.y = -g->v.y;
         g->p = fpos; //set back to old position
         g->v.x *= 0.36f;
@@ -775,48 +743,4 @@ int move_grenade(GrenadeType *g)
         g->v.z *= 0.36f;
         return ret;
     }
-}
-
-// C interface
-
-PlayerType *create_player()
-{
-    PlayerType *player = new PlayerType;
-    player->s.x = 0;
-    player->s.y = 1;
-    player->s.z = 0;
-    player->h.x = 0;
-    player->h.y = 0;
-    player->h.z = 1;
-    player->f.x = 1;
-    player->f.y = 0;
-    player->f.z = 0;
-    player->p.x = 0;
-    player->p.y = 0;
-    player->p.z = 0.0f;
-    player->e = player->p;
-    player->v.x = player->v.y = player->v.z = 0;
-    player->mf = player->mb = player->ml = player->mr = player->jump =
-        player->crouch = player->sneak = 0;
-    player->airborne = player->wade = 0;
-    player->lastclimb = 0;
-    player->alive = 1;
-    return player;
-}
-
-void destroy_player(PlayerType *player)
-{
-    delete player;
-}
-
-void destroy_grenade(GrenadeType *grenade)
-{
-    delete grenade;
-}
-
-void set_globals(MapData *map, float time, float dt)
-{
-    global_map = map;
-    ftotclk = time;
-    fsynctics = dt;
 }

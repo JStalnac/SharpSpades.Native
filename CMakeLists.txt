@@ -5,10 +5,11 @@ project(sharpspades)
 add_library(sharpspades SHARED
     common_c.h
     constants_c.h
-    vxl_c.cpp
-    vxl_c.h
-    world_c.cpp
-    pyspades.h
+    world_c.c
+    memory.h
+    sharpspades.h
+    libvxl.c
+    libvxl.h
 )
 
 set_target_properties(sharpspades PROPERTIES PUBLIC_HEADER pyspades.h)
