@@ -4,7 +4,7 @@
     <id>SharpSpades.Native</id>
     <version>1.0.0</version>
     <description>Native library for SharpSpades</description>
-    <authors>Piqueserver contributors</authors>
+    <authors>Piqueserver and libvxl contributors</authors>
   </metadata>
   <files>
     <file src="**" exclude="README.md" />
