@@ -445,7 +445,7 @@ int cube_line(int x1, int y1, int z1, int x2, int y2, int z2,
 
 // original C code
 
-void reposition_player(PlayerType *p, Vector *position, float time)
+void reposition_player(Player *p, Vector *position, float time)
 {
     p->e = p->p = *position;
     float f = p->lastclimb - time; /* FIXME meaningful name */
@@ -463,13 +463,13 @@ inline void set_orientation_vectors(Vector *o, Vector *s, Vector *h)
     h->z = o->x * s->y - o->y * s->x;
 }
 
-void reorient_player(PlayerType *p, Vector *orientation)
+void reorient_player(Player *p, Vector *orientation)
 {
     p->f = *orientation;
     set_orientation_vectors(orientation, &p->s, &p->h);
 }
 
-int try_uncrouch(struct libvxl_map *map, PlayerType *p)
+int try_uncrouch(struct libvxl_map *map, Player *p)
 {
     float x1 = p->p.x + 0.45f;
     float x2 = p->p.x - 0.45f;
@@ -495,7 +495,7 @@ int try_uncrouch(struct libvxl_map *map, PlayerType *p)
 }
 
 //player movement with autoclimb
-void boxclipmove(struct libvxl_map *map, PlayerType *p, float delta, float time)
+void boxclipmove(struct libvxl_map *map, Player *p, float delta, float time)
 {
     float f = delta * 32.f;
     float nx = f * p->v.x + p->p.x;
@@ -617,7 +617,7 @@ void boxclipmove(struct libvxl_map *map, PlayerType *p, float delta, float time)
     reposition_player(p, &p->p, time);
 }
 
-long move_player(struct libvxl_map *map, PlayerType *p, float delta, float time)
+long move_player(struct libvxl_map *map, Player *p, float delta, float time)
 {
     //move player and perform simple physics (gravity, momentum, friction)
     if (p->jump)

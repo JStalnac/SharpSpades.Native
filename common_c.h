@@ -28,7 +28,7 @@ typedef struct
         secondary_fire;
     float lastclimb;
     int airborne, wade, alive, weapon;
-} PlayerType;
+} Player;
 
 typedef struct
 {

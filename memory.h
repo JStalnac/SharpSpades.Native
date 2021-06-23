@@ -1,10 +1,11 @@
 #include <stdlib.h>
 
 #include "common_c.h"
+#include "libvxl.h"
 
-PlayerType *create_player()
+Player *create_player()
 {
-    PlayerType *player = (PlayerType*)malloc(sizeof(PlayerType));
+    Player *player = (Player*)malloc(sizeof(Player));
     player->s.x = 0;
     player->s.y = 1;
     player->s.z = 0;
@@ -27,15 +28,11 @@ PlayerType *create_player()
     return player;
 }
 
-void destroy_player(PlayerType *player)
+void destroy_player(Player *player)
 {
     free(player);
 }
 
-void destroy_grenade(Grenade *grenade)
-{
-    free(grenade);
-}
 
 Grenade *create_grenade(Vector *position, Vector *velocity)
 {
@@ -43,4 +40,19 @@ Grenade *create_grenade(Vector *position, Vector *velocity)
     g->p = *position;
     g->v = *velocity;
     return g;
+}
+
+void destroy_grenade(Grenade *grenade)
+{
+    free(grenade);
+}
+
+struct libvxl_map *create_map()
+{
+    return (struct libvxl_map*)malloc(sizeof(struct libvxl_map));
+}
+
+void destroy_map(struct libvxl_map *map)
+{
+    free(map);
 }

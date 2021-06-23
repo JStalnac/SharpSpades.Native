@@ -17,8 +17,8 @@ extern "C"
               float z1, float length, long *x, long *y, long *z);
     int cube_line(int x1, int y1, int z1, int x2, int y2, int z2,
         LongVector *cube_array);
-    int try_uncrouch(struct libvxl_map *map, PlayerType *p);
-    long move_player(struct libvxl_map *map, PlayerType *p, float delta, float time);
+    int try_uncrouch(struct libvxl_map *map, Player *p);
+    long move_player(struct libvxl_map *map, Player *p, float delta, float time);
     int move_grenade(struct libvxl_map *map, Grenade *g, float delta);
 #ifdef __cplusplus
 }
