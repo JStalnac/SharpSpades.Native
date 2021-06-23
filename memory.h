@@ -54,5 +54,8 @@ struct libvxl_map *create_map()
 
 void destroy_map(struct libvxl_map *map)
 {
+    if (!map)
+        return;
+    libvxl_free(map);
     free(map);
 }
