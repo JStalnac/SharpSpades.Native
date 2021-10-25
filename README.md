@@ -1,6 +1,6 @@
 # SharpSpades.Native
 
-Native C++ library for [SharpSpades](https://github.com/JStalnac/SharpSpades)
+Native C library for [SharpSpades](https://github.com/JStalnac/SharpSpades)
 
 ## Credits
  - Physics code - [SpadesX](https://github.com/SpadesX/SpadesX)
