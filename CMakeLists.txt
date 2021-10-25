@@ -15,5 +15,4 @@ add_library(sharpspades SHARED
 )
 
 set_target_properties(sharpspades PROPERTIES PUBLIC_HEADER sharpspades.h)
-target_include_directories(sharpspades PRIVATE .)
-target_compile_options(sharpspades PRIVATE ${COMPILE_FLAGS})
+target_include_directories(sharpspades PUBLIC .)
