@@ -1,25 +1,36 @@
-#include "common_c.h"
+#ifndef SHARPSPADES_H
+#define SHARPSPADES_H
+
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-    #include "libvxl.h"
-    #include "memory.h"
+    #include "libmapvxl.h"
+    int block_line(const vec3i* v1, const vec3i* v2, vec3i* result);
 
-    int validate_hit(float shooter_x, float shooter_y, float shooter_z,
-                 float orientation_x, float orientation_y, float orientation_z,
-                 float ox, float oy, float oz,
+    Player* create_player();
+    void destroy_player(Player* p);
+    Grenade* create_grenade();
+    void destroy_grenade(Grenade* g);
+    MapVxl* create_map();
+    void destroy_map(MapVxl* m);
+
+    int validate_hit(Vector3f shooter,
+                 Vector3f orientation,
+                 Vector3f other,
                  float tolerance);
-    long can_see(struct libvxl_map *map, float x0, float y0, float z0, float x1, float y1,
+    long can_see(MapVxl* map, float x0, float y0, float z0, float x1, float y1,
              float z1);
-    long cast_ray(struct libvxl_map *map, float x0, float y0, float z0, float x1, float y1,
+    long cast_ray(MapVxl* map, float x0, float y0, float z0, float x1, float y1,
               float z1, float length, long *x, long *y, long *z);
-    int cube_line(int x1, int y1, int z1, int x2, int y2, int z2,
-        LongVector *cube_array);
-    int try_uncrouch(struct libvxl_map *map, Player *p);
-    long move_player(struct libvxl_map *map, Player *p, float delta, float time);
-    int move_grenade(struct libvxl_map *map, Grenade *g, float delta);
+    
+    int try_uncrouch(MapVxl* map, Player *p);
+    long move_player(MapVxl* map, Player* p, float delta, float time);
+    
+    int move_grenade(MapVxl* map, Grenade* g, float delta);
 #ifdef __cplusplus
 }
 #endif
+#endif // SHARPSPADES_H

@@ -3,14 +3,17 @@ cmake_minimum_required(VERSION 3.10)
 project(sharpspades)
 
 add_library(sharpspades SHARED
-    common_c.h
-    constants_c.h
-    world_c.c
-    memory.h
     sharpspades.h
-    libvxl.c
-    libvxl.h
+    libmapvxl.c
+    libmapvxl.h
+    line.c
+    hitdetection.c
+    types.h
+    player.c
+    grenade.c
+    memory.c
 )
 
-set_target_properties(sharpspades PROPERTIES PUBLIC_HEADER pyspades.h)
+set_target_properties(sharpspades PROPERTIES PUBLIC_HEADER sharpspades.h)
 target_include_directories(sharpspades PRIVATE .)
+target_compile_options(sharpspades PRIVATE ${COMPILE_FLAGS})

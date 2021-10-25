@@ -2,10 +2,9 @@
 
 Native C++ library for [SharpSpades](https://github.com/JStalnac/SharpSpades)
 
-## Sources
-`common_c.h`, `constants_c.h`, `memory.h` and `world_c.c`: [piqueserver](https://github.com/piqueserver/piqueserver) (License GPLv3)
-
-`libvxl.c`, `libvxl.h`: [libvxl](https://github.com/xtreme8000/libvxl) (License MIT)
+## Credits
+ - Physics code - [SpadesX](https://github.com/SpadesX/SpadesX)
+ - Map library - [libmapvxl](https://github.com/SpadesX/libmapvxl)
 
 ## Building
 ```bash
