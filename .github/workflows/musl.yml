@@ -1,4 +1,4 @@
-on: [push]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          CC=x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc
+          export CC=x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc
           cmake -S ${{ github.workspace }} -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
