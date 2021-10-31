@@ -28,5 +28,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2.2.2
         with:
-          name: build-${{ matrix.compiler }}
-          path: build/
+          name: ${{ matrix.compiler }}-libsharpspades.so
+          path: libsharpspades.so

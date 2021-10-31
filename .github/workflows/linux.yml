@@ -16,5 +16,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2.2.2
         with:
-          name: build
-          path: build/
+          name: libsharpspades.so
+          path: libsharpspades.so
