@@ -1,0 +1,28 @@
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build for Linux x64 Musl
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download compiler
+        run: wget http://musl.cc/x86_64-linux-musl-cross.tgz
+
+      - name: Extract compiler
+        run: tar -xzf x86_64-linux-musl-cross.tgz
+
+      - name: Configure CMake
+        run: |
+          CC=x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc
+          cmake -S ${{ github.workspace }} -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - uses: actions/upload-artifact@v2.2.2
+        with:
+          name: build
+          path: build/
