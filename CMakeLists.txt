@@ -14,5 +14,7 @@ add_library(sharpspades SHARED
     memory.c
 )
 
+add_compile_options(-Wall -Wextra -Wpedantic -O2)
+
 set_target_properties(sharpspades PROPERTIES PUBLIC_HEADER sharpspades.h)
 target_include_directories(sharpspades PUBLIC .)
