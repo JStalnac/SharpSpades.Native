@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>SharpSpades.Native</id>
+    <version>2.1.0</version>
+    <description>Native library for SharpSpades</description>
+    <authors>Piqueserver and libvxl contributors</authors>
+  </metadata>
+  <files>
+    <file src="**" exclude="README.md" />
+  </files>
+</package>

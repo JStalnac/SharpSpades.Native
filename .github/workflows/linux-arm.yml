@@ -1,0 +1,32 @@
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build for Linux ARM
+
+    strategy:
+      matrix:
+        include:
+          - compiler: arm-linux-gnueabi-gcc
+            package: gcc-arm-linux-gnueabi
+
+          - compiler: aarch64-linux-gnu-gcc
+            package: gcc-aarch64-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install compiler
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.package }}
+
+      - name: Configure CMake
+        run: CC=${{ matrix.compiler }} cmake -S ${{ github.workspace }} -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.compiler }}-libsharpspades.so
+          path: build/libsharpspades.so

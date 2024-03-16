@@ -1,0 +1,28 @@
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build for Linux x64 Musl
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download compiler
+        run: wget http://musl.cc/x86_64-linux-musl-cross.tgz
+
+      - name: Extract compiler
+        run: tar -xzf x86_64-linux-musl-cross.tgz
+
+      - name: Configure CMake
+        run: |
+          export CC=x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc
+          cmake -S ${{ github.workspace }} -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libsharpspades.so
+          path: build/libsharpspades.so
